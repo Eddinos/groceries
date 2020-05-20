@@ -1,0 +1,17 @@
+{
+  "name": "groceries",
+  "displayName": "groceries",
+  "expo": {
+    "name": "groceries",
+    "slug": "groceries",
+    "version": "1.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
