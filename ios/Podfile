@@ -43,4 +43,6 @@ target 'groceries' do
 
   # react-native-cli autolinking
   use_native_modules!
+  pod 'RNCCheckbox', :path => '../node_modules/@react-native-community/checkbox'
+
 end

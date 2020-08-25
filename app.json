@@ -12,6 +12,10 @@
     ],
     "assetBundlePatterns": [
       "**/*"
-    ]
+    ],
+    "android": {
+      "package": "com.eddinedotcom.groceries",
+      "versionCode": 1
+    }
   }
 }
