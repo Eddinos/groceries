@@ -4,7 +4,7 @@ import SectionTitle from './SectionTitle'
 import SectionItem from './SectionItem'
 import { storeData, fetchData } from './api'
 import { AppLoading } from 'expo'
-import { useFonts, Inter_400Regular } from '@expo-google-fonts/inter';
+import { useFonts, VarelaRound_400Regular } from '@expo-google-fonts/varela-round';
 
 const recipesEndpoint = 'https://stormy-wave-07737.herokuapp.com/'
 
@@ -15,7 +15,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
 
   let [fontsLoaded] = useFonts({
-    Inter_400Regular,
+    VarelaRound_400Regular,
   });
 
   useEffect(() => {
@@ -34,11 +34,16 @@ export default function App() {
 
   async function handleTextChange (value: string) {
     setIsLoading(true)
-    const response = await fetch(`${recipesEndpoint}?url=${value}`)
-    let { title, ingredients }: { title: string, ingredients: Array<any> } = await response.json()
-    setIsLoading(false)
-    const newRecipe = { title, data: ingredients.map(i => ({ ...i, checked: false }))}
-    setRecipes(storedRecipes => [...storedRecipes, newRecipe])
+    try {
+      const response = await fetch(`${recipesEndpoint}?url=${value}`)
+      let { title, ingredients }: { title: string, ingredients: Array<any> } = await response.json()
+      setIsLoading(false)
+      const newRecipe = { title, data: ingredients.map(i => ({ ...i, checked: false }))}
+      setRecipes(storedRecipes => [...storedRecipes, newRecipe])
+    } catch (e) {
+      alert('Impossible de récupérer la liste des ingrédients.\r\nL\'url renseignée est bien celle de la recette ?')
+      setIsLoading(false)
+    }
   }
 
   function handleCheckItem (value: Boolean, item: any) {
@@ -74,7 +79,7 @@ export default function App() {
                           onPress={readInputFromClipBoard} 
                           underlayColor="#393E46" 
                           disabled={isLoading}>
-        <Text style={{ color: '#2B2E4A', fontFamily: 'Inter_400Regular' }}>Coller depuis le presse-papier</Text>
+        <Text style={{ color: '#2B2E4A', fontFamily: 'VarelaRound_400Regular', fontWeight: "bold", fontSize: 18 }}>Ajouter une recette</Text>
       </TouchableHighlight>
       <ActivityIndicator size="large" color="#f6416c" style={[styles.loader, !isLoading && styles.loaderDone]} animating={isLoading} />
       {recipes.length > 0 && <SectionList style={styles.section} 
