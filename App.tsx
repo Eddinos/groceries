@@ -40,7 +40,7 @@ export default function App() {
       firstUpdate.current = false;
       return;
     }
-    // console.log(recipes)
+
     storeData({ key: 'recipes', value: recipes })
   }, [recipes])
 
