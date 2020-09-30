@@ -1,15 +1,14 @@
-import React from 'react'
-import { Text, TouchableHighlight, Image, StyleSheet } from 'react-native'
-import * as Animatable from 'react-native-animatable'
+import React, { useState } from 'react'
+import { Text, TouchableHighlight, Image, StyleSheet, View } from 'react-native'
 
 export default function SectionTitle ({ title, onDelete }: { title: string, onDelete: () => any }) {
     return (
-      <Animatable.View animation="bounceIn" duration={800} useNativeDriver style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }} >
+      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }} >
         <Text style={styles.sectionTitle}>{title}</Text>
         <TouchableHighlight onPress={onDelete} underlayColor="transparent">
           <Image source={require("./assets/delete.png")} style={{ width: 24, height: 24 }} />
         </TouchableHighlight>
-      </Animatable.View>
+      </View>
     )
   }
 
@@ -21,6 +20,8 @@ export default function SectionTitle ({ title, onDelete }: { title: string, onDe
         marginBottom: 12,
         marginLeft: 12,
         marginRight: 12,
-        maxWidth: '85%'
+        maxWidth: '85%',
+        fontFamily: 'VarelaRound_400Regular', 
+        color: "#2b2e4a"
       }
   })

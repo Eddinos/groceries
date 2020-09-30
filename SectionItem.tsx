@@ -13,7 +13,7 @@ export default function SectionItem ({ item, onChecked, index }: { item: any, on
   
     return (
       <Animatable.View style={styles.sectionItem} animation="fadeIn" delay={index * 100} useNativeDriver duration={500}>
-        <CheckBox value={isChecked} onValueChange={handleValueChange}/>
+        <CheckBox value={isChecked} onValueChange={handleValueChange} tintColors={{ true: '#f6416c', false: '#2b2e4a' }}/>
         <Text style={[styles.ingredient, isChecked ? styles.isChecked : {}]}>{item.raw}</Text>
       </Animatable.View>
     )
