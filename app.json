@@ -1,10 +1,11 @@
 {
-  "name": "groceries",
-  "displayName": "groceries",
+  "name": "Les Listes de Monsieur C",
+  "displayName": "Les Listes de Monsieur C",
   "expo": {
-    "name": "groceries",
+    "name": "Les Listes de Monsieur C",
     "slug": "groceries",
-    "version": "1.0.0",
+    "version": "1.0.1",
+    "icon": "./assets/Icon-512.png",
     "platforms": [
       "ios",
       "android",
@@ -15,7 +16,18 @@
     ],
     "android": {
       "package": "com.eddinedotcom.groceries",
-      "versionCode": 1
+      "versionCode": 2,
+      "permissions": []
+    },
+    "splash": {
+      "image": "./assets/listes-mrc.png",
+      "backgroundColor": "#F8F3D4",
+      "resizeMode": "contain"
+    },
+    "orientation": "portrait",
+    "primaryColor": "#F8F3D4",
+    "androidNavigationBar": {
+      "visible": "sticky-immersive"
     }
   }
 }
