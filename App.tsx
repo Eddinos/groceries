@@ -1,29 +1,23 @@
-import React, { useState, useEffect, useRef, ReactChild } from 'react';
-import { StyleSheet, Text, View, SectionList, TextInput, TouchableHighlight, AsyncStorage, Clipboard, Button, FlatList, Image, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, SectionList, TextInput, TouchableHighlight, Clipboard, Image, ActivityIndicator } from 'react-native';
 import SectionTitle from './SectionTitle'
 import SectionItem from './SectionItem'
 import { storeData, fetchData } from './api'
-import { AppLoading } from 'expo'
 import { useFonts, VarelaRound_400Regular } from '@expo-google-fonts/varela-round';
 import * as Animatable from 'react-native-animatable'
+import RecipeExplorer from './components/RecipeExplorer'
+import themeColors from './config/themeColors'
 
 const recipesEndpoint = 'https://stormy-wave-07737.herokuapp.com/'
-
-const themeColors = {
-  background: '#F8F3D4',
-  primary: '#00B8A9',
-  secondary: '#2B2E4A',
-  red: '#f6416c'
-}
 
 export default function App() {
   const [recipes, setRecipes] = useState([] as Array<any>)
   const [inputUrl, setInputUrl] = useState('')
   const firstUpdate = useRef(true)
   const [isLoading, setIsLoading] = useState(false)
-  const [animationName, setAnimationName] = useState('bounceIn')
-  const [isBeingDeleted, setIsBeingDeleted] = useState(false)
-
+  const [animationName, setAnimationName] = useState({} as any)
+  const [isBeingDeleted, setIsBeingDeleted] = useState('')
+  const [showRecipeExplorer, setShowRecipeExplorer] = useState(false)
 
   let [fontsLoaded] = useFonts({
     VarelaRound_400Regular,
@@ -58,9 +52,9 @@ export default function App() {
     }
   }
 
-  function handleCheckItem (value: Boolean, item: any) {
+  function handleCheckItem (value: boolean, item: any) {
     setRecipes(recipes.map(r => {
-      return { ...r, data: r.data.map(i => ({ ...i, checked: (i.raw === item.raw && r.data.includes(item)) ? !i.checked : i.checked })) }
+      return { ...r, data: r.data.map((i: any) => ({ ...i, checked: (i.raw === item.raw && r.data.includes(item)) ? !i.checked : i.checked })) }
     }))
   }
 
@@ -70,17 +64,31 @@ export default function App() {
     handleTextChange(url)
   }
 
-  function handleDeleteSection () {
-    setAnimationName('fadeOutLeft')
-    setIsBeingDeleted(true)
+  function handleDeleteSection (section: any) {
+    const toBeAdded: any = {}
+    toBeAdded[section.key] = 'fadeOutLeft'
+    setAnimationName((anim:any) => ({ ...anim, ...toBeAdded }))
+    setIsBeingDeleted(section.key)
   }
 
   function removeRecipe (section: any) {
-    if (isBeingDeleted) {
-      setRecipes(recipes.filter(recipe => recipe !== section))
-      setIsBeingDeleted(false)
-      setAnimationName('fadeIn')
+    console.log({title: section.title, isBeingDeleted})
+    if (isBeingDeleted === section.key) {
+      setRecipes(recipes.filter(recipe => recipe.key !== section.key))
+      setIsBeingDeleted('')
+      delete animationName[section.key]
+      setAnimationName(animationName)
     }
+  }
+
+  function handleRecipeConfirm (recipeUri: string, { stopLoading }: { stopLoading: () => void }) {
+    stopLoading()
+    setShowRecipeExplorer(false)
+    handleTextChange(recipeUri)
+  }
+
+  function getAnimationName (sectionKey: string) : string {
+    return Object.keys(animationName).length > 0 ? animationName[sectionKey] : 'bounceIn'
   }
 
   if (!fontsLoaded) {
@@ -89,31 +97,54 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <TextInput style={styles.urlInput} 
-                 value={inputUrl} 
-                 onSubmitEditing={({ nativeEvent }) => handleTextChange(nativeEvent.text)}
-                 placeholder="url monsieur-cuisine"/>
+      <View style={{width: '80%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+        <TextInput style={styles.urlInput} 
+                   value={inputUrl} 
+                   onChangeText={text => setInputUrl(text)}
+                   onSubmitEditing={({ nativeEvent }) => handleTextChange(nativeEvent.text)}
+                   placeholder="Entrer une url monsieur-cuisine"/>
+        <TouchableHighlight onPress={readInputFromClipBoard} underlayColor="transparent" style={{width: 32, height: 32}}>
+          <Image source={require('./assets/paste.png')} style={{width: 32, height: 32}}/>
+        </TouchableHighlight>
+      </View>
       
+      <Text style={{paddingTop: 20}}>ou</Text>
+
       <TouchableHighlight style={styles.button} 
-                          onPress={readInputFromClipBoard} 
+                          onPress={() => setShowRecipeExplorer(true)} 
                           underlayColor="#393E46" 
                           disabled={isLoading}>
-        <Text style={styles.buttonText}>Ajouter une recette</Text>
+        <Text style={styles.buttonText}>Rechercher une recette</Text>
       </TouchableHighlight>
+
       <ActivityIndicator size="large" color={themeColors.red} style={[styles.loader, !isLoading && styles.loaderDone]} animating={isLoading} />
+
       {recipes.length > 0 && <SectionList style={styles.section} 
                                           sections={recipes}
-                                          renderItem={({ item, index }) => (<Animatable.View animation={animationName} duration={800} 
-                                          useNativeDriver >
-                                            <SectionItem item={item} onChecked={(v: Boolean) => handleCheckItem(v, item)} index={index} />
-                                          </Animatable.View>)}
+                                          renderItem={({ item, index, section }) => (
+                                            <Animatable.View animation={getAnimationName(section.key)} 
+                                                             duration={800}
+                                                             useNativeDriver >
+                                              <SectionItem item={item} 
+                                                           onChecked={(v: boolean) => handleCheckItem(v, item)} 
+                                                           index={index} />
+                                            </Animatable.View>)}
                                           renderSectionHeader={({ section }) => (
-                                            <Animatable.View animation={animationName} duration={800} onAnimationEnd={() => removeRecipe(section)}
-                                            useNativeDriver >
-                                              <SectionTitle title={section.title} onDelete={handleDeleteSection} />
+                                            <Animatable.View animation={getAnimationName(section.key)}
+                                                             duration={800}
+                                                             onAnimationEnd={() => removeRecipe(section)}
+                                                             useNativeDriver >
+                                              <SectionTitle title={section.title} 
+                                                            onDelete={() => handleDeleteSection(section)} />
                                             </Animatable.View>
                                           )}
       />}
+      
+      { showRecipeExplorer && (
+        <RecipeExplorer confirmRecipeSelection={handleRecipeConfirm} 
+                        closeExplorer={() => setShowRecipeExplorer(false)} />
+      )}
+      
     </View>
   );
 }
@@ -135,7 +166,7 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
     borderColor: themeColors.primary,
     borderWidth: 1,
-    width: '80%'
+    width: '90%'
   },
   section: {
     width: '95%'
