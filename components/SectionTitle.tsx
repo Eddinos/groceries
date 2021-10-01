@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Text, TouchableHighlight, Image, StyleSheet, View } from 'react-native'
 
-export default function SectionTitle ({ title, onDelete }: { title: string, onDelete: () => any }) {
+export default function SectionTitle ({ title, onDelete }: { title: string, onDelete: () => void }) {
     return (
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }} >
         <Text style={styles.sectionTitle}>{title}</Text>
         <TouchableHighlight onPress={onDelete} underlayColor="transparent">
-          <Image source={require("./assets/delete.png")} style={{ width: 24, height: 24 }} />
+          <Image source={require("../assets/delete.png")} style={{ width: 24, height: 24 }} />
         </TouchableHighlight>
       </View>
     )

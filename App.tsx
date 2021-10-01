@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, SectionList, TextInput, TouchableHighlight, Clipboard, Image, ActivityIndicator } from 'react-native';
-import SectionTitle from './SectionTitle'
-import SectionItem from './SectionItem'
 import { storeData, fetchData } from './api'
 import { useFonts, VarelaRound_400Regular } from '@expo-google-fonts/varela-round';
 import * as Animatable from 'react-native-animatable'
 import RecipeExplorer from './components/RecipeExplorer'
+import SectionTitle from './components/SectionTitle'
+import SectionItem from './components/SectionItem'
 import themeColors from './config/themeColors'
+
+import { Recipe, RecipeSection, IngredientSectionItem, Webview } from './config/types'
 
 const recipesEndpoint = 'https://stormy-wave-07737.herokuapp.com/'
 
 export default function App() {
-  const [recipes, setRecipes] = useState([] as Array<any>)
+  const [recipes, setRecipes] = useState([] as Array<RecipeSection>)
   const [inputUrl, setInputUrl] = useState('')
   const firstUpdate = useRef(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -42,9 +44,13 @@ export default function App() {
     setIsLoading(true)
     try {
       const response = await fetch(`${recipesEndpoint}?url=${value}`)
-      let { title, ingredients }: { title: string, ingredients: Array<any> } = await response.json()
+      let { title, ingredients }: Recipe = await response.json()
       setIsLoading(false)
-      const newRecipe = { title, data: ingredients.map((i, index) => ({ ...i, checked: false, key: index + i.raw })), key: new Date().toISOString()}
+      const newRecipe: RecipeSection = { 
+        title, 
+        data: ingredients.map((i, index): IngredientSectionItem => ({ ...i, checked: false, key: index + i.raw })), 
+        key: new Date().toISOString()
+      }
       setRecipes(storedRecipes => [...storedRecipes, newRecipe])
     } catch (e) {
       alert('Impossible de récupérer la liste des ingrédients.\r\nL\'url renseignée est bien celle de la recette ?')
@@ -52,9 +58,11 @@ export default function App() {
     }
   }
 
-  function handleCheckItem (value: boolean, item: any) {
+  function handleCheckItem (value: boolean, item: IngredientSectionItem) {
     setRecipes(recipes.map(r => {
-      return { ...r, data: r.data.map((i: any) => ({ ...i, checked: (i.raw === item.raw && r.data.includes(item)) ? !i.checked : i.checked })) }
+      return { 
+        ...r,
+        data: r.data.map((i: IngredientSectionItem) => ({ ...i, checked: (i.raw === item.raw && r.data.includes(item)) ? !i.checked : i.checked })) }
     }))
   }
 
@@ -64,14 +72,14 @@ export default function App() {
     handleTextChange(url)
   }
 
-  function handleDeleteSection (section: any) {
+  function handleDeleteSection (section: RecipeSection) {
     const toBeAdded: any = {}
     toBeAdded[section.key] = 'fadeOutLeft'
     setAnimationName((anim:any) => ({ ...anim, ...toBeAdded }))
     setIsBeingDeleted(section.key)
   }
 
-  function removeRecipe (section: any) {
+  function removeRecipe (section: RecipeSection) {
     console.log({title: section.title, isBeingDeleted})
     if (isBeingDeleted === section.key) {
       setRecipes(recipes.filter(recipe => recipe.key !== section.key))
@@ -81,7 +89,7 @@ export default function App() {
     }
   }
 
-  function handleRecipeConfirm (recipeUri: string, { stopLoading }: { stopLoading: () => void }) {
+  function handleRecipeConfirm (recipeUri: string, { stopLoading }: Webview) {
     stopLoading()
     setShowRecipeExplorer(false)
     handleTextChange(recipeUri)
@@ -134,7 +142,7 @@ export default function App() {
                                                              duration={800}
                                                              onAnimationEnd={() => removeRecipe(section)}
                                                              useNativeDriver >
-                                              <SectionTitle title={section.title} 
+                                              <SectionTitle title={section.title || ''} 
                                                             onDelete={() => handleDeleteSection(section)} />
                                             </Animatable.View>
                                           )}

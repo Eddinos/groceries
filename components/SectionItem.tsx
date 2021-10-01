@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { Text, StyleSheet } from 'react-native'
 import * as Animatable from 'react-native-animatable'
 import Checkbox from '@react-native-community/checkbox'
+import { IngredientSectionItem } from '../config/types'
 
-export default function SectionItem ({ item, onChecked, index }: { item: any, onChecked: Function, index: number }) {
+export default function SectionItem ({ item, onChecked, index }: { item: IngredientSectionItem, onChecked: Function, index: number }) {
     const [isChecked, setIsChecked] = useState(item.checked)
   
-    function handleValueChange (value: Boolean) {
+    function handleValueChange () {
       isChecked ? setIsChecked(false) : setIsChecked(true)
       onChecked(isChecked)
     }
