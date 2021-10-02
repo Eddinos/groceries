@@ -1,21 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, SectionList, TextInput, TouchableHighlight, Clipboard, Image, ActivityIndicator } from 'react-native';
-import { storeData, fetchData } from './api'
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, SectionList, TouchableHighlight, ActivityIndicator } from 'react-native';
 import { useFonts, VarelaRound_400Regular } from '@expo-google-fonts/varela-round';
 import * as Animatable from 'react-native-animatable'
 import RecipeExplorer from './components/RecipeExplorer'
 import SectionTitle from './components/SectionTitle'
 import SectionItem from './components/SectionItem'
 import themeColors from './config/themeColors'
+import RecipeInput from './components/RecipeInput'
+import useRecipes from './hooks/useRecipes'
 
-import { Recipe, RecipeSection, IngredientSectionItem, Webview } from './config/types'
-
-const recipesEndpoint = 'https://stormy-wave-07737.herokuapp.com/'
+import { RecipeSection, IngredientSectionItem, Webview } from './config/types'
 
 export default function App() {
-  const [recipes, setRecipes] = useState([] as Array<RecipeSection>)
-  const [inputUrl, setInputUrl] = useState('')
-  const firstUpdate = useRef(true)
+  const [recipes, setRecipes, importNewRecipe] = useRecipes()
   const [isLoading, setIsLoading] = useState(false)
   const [animationName, setAnimationName] = useState({} as any)
   const [isBeingDeleted, setIsBeingDeleted] = useState('')
@@ -25,37 +22,10 @@ export default function App() {
     VarelaRound_400Regular,
   });
 
-  useEffect(() => {
-    fetchData().then(data => {
-      data && setRecipes(JSON.parse(data))
-    })
-  }, [])
-
-  useEffect(() => {
-    if (firstUpdate.current) {
-      firstUpdate.current = false;
-      return;
-    }
-
-    storeData({ key: 'recipes', value: recipes })
-  }, [recipes])
-
   async function handleTextChange (value: string) {
     setIsLoading(true)
-    try {
-      const response = await fetch(`${recipesEndpoint}?url=${value}`)
-      let { title, ingredients }: Recipe = await response.json()
-      setIsLoading(false)
-      const newRecipe: RecipeSection = { 
-        title, 
-        data: ingredients.map((i, index): IngredientSectionItem => ({ ...i, checked: false, key: index + i.raw })), 
-        key: new Date().toISOString()
-      }
-      setRecipes(storedRecipes => [...storedRecipes, newRecipe])
-    } catch (e) {
-      alert('Impossible de récupérer la liste des ingrédients.\r\nL\'url renseignée est bien celle de la recette ?')
-      setIsLoading(false)
-    }
+    await importNewRecipe(value)
+    setIsLoading(false)
   }
 
   function handleCheckItem (value: boolean, item: IngredientSectionItem) {
@@ -66,12 +36,6 @@ export default function App() {
     }))
   }
 
-  async function readInputFromClipBoard () {
-    const url = await Clipboard.getString()
-    setInputUrl(url)
-    handleTextChange(url)
-  }
-
   function handleDeleteSection (section: RecipeSection) {
     const toBeAdded: any = {}
     toBeAdded[section.key] = 'fadeOutLeft'
@@ -80,7 +44,6 @@ export default function App() {
   }
 
   function removeRecipe (section: RecipeSection) {
-    console.log({title: section.title, isBeingDeleted})
     if (isBeingDeleted === section.key) {
       setRecipes(recipes.filter(recipe => recipe.key !== section.key))
       setIsBeingDeleted('')
@@ -105,16 +68,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <View style={{width: '80%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-        <TextInput style={styles.urlInput} 
-                   value={inputUrl} 
-                   onChangeText={text => setInputUrl(text)}
-                   onSubmitEditing={({ nativeEvent }) => handleTextChange(nativeEvent.text)}
-                   placeholder="Entrer une url monsieur-cuisine"/>
-        <TouchableHighlight onPress={readInputFromClipBoard} underlayColor="transparent" style={{width: 32, height: 32}}>
-          <Image source={require('./assets/paste.png')} style={{width: 32, height: 32}}/>
-        </TouchableHighlight>
-      </View>
+      <RecipeInput handleTextChange={handleTextChange} />
       
       <Text style={{paddingTop: 20}}>ou</Text>
 
